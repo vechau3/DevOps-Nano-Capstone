@@ -101,7 +101,7 @@ jobs:
       - run:
           name: Connect to cluster
           command: |
-            aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $CLUSTER_NAME
+            aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name capstone-cluster
       - run:
           name: Prepare K8S template
           command: |
