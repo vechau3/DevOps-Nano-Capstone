@@ -47,7 +47,9 @@ jobs:
 
     steps:
       - checkout
-
+      - add_ssh_keys:
+          fingerprints:
+            - "1a:62:b9:c8:c7:d9:a5:e5:f3:0c:72:00:e3:37:a3:3d"
       - setup_remote_docker:
           version: 19.03.13
 
@@ -69,6 +71,9 @@ jobs:
       - image: circleci/python:3.7
     steps:
       - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "1a:62:b9:c8:c7:d9:a5:e5:f3:0c:72:00:e3:37:a3:3d"
       - run:
           name: Install awscli and gettext-base
           command: |
