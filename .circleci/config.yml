@@ -87,6 +87,10 @@ jobs:
             chmod +x ./kubectl
             sudo mv ./kubectl /usr/local/bin/kubectl
       - run:
+          name: Create cluster
+          command: |
+            eksctl create cluster -f ~/cluster.yaml
+      - run:
           name: Connect to cluster
           command: |
             aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $CLUSTER_NAME
