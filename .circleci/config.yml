@@ -1,10 +1,4 @@
 version: 2.1
-Parameters:
-  DockerPath:
-    Description: a Docker Path
-    Default: project4udacity/capstone-app
-    Type: String
-
 jobs:
   test-build:
     docker:
@@ -12,7 +6,6 @@ jobs:
 
     steps:
       - checkout
-
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "requirements.txt" }}
@@ -42,9 +35,7 @@ jobs:
   upload-docker:
     docker:
       - image: circleci/golang:1.15
-
     working_directory: ~/repo
-
     steps:
       - checkout
       - add_ssh_keys:
@@ -52,7 +43,6 @@ jobs:
             - "1a:62:b9:c8:c7:d9:a5:e5:f3:0c:72:00:e3:37:a3:3d"
       - setup_remote_docker:
           version: 19.03.13
-
       - run:
           name: Build docker container
           command: |
@@ -96,25 +86,17 @@ jobs:
           command: |
             curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
             sudo mv /tmp/eksctl /usr/local/bin
-            ls -l
             eksctl create cluster -f cluster.yml
       - run:
           name: Connect to cluster
           command: |
-            aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name capstone-cluster
-      - run:
-          name: Prepare K8S template
-          command: |
-            rm -rf .k8s/.generated && mkdir -p kube/.k8s/.generated
-            for f in kube/.k8s/template/deployment.yaml
-              do
-              envsubst < $f > "kube/.k8s/.generated/$(basename $f)"
-            done
+            aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $ENVIRONMENT_NAME-cluster
       - run:
           name: Deploy
           command: |
-            kubectl apply -f kube/.k8s/.generated/
+            kubectl apply -f deployment.yml
             kubectl get pod
+            kubectl get services
 
 workflows:
   default:
