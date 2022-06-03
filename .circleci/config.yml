@@ -102,7 +102,7 @@ workflows:
       - testing-application-phase
       - upload-application-phase:
           requires:
-            - test-build
+            - testing-application-phase
           filters:
             branches:
               only: [ master ]
