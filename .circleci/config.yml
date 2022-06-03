@@ -1,6 +1,6 @@
 version: 2.1
 jobs:
-  testing-phase:
+  testing-application-phase:
     docker:
       - image: python:3.7.3-stretch
 
