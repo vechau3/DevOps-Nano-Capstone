@@ -8,7 +8,6 @@ install:
 		chmod +x ./hadolint
 
 test:
-	#No tests yet
 
 lint:
 	./hadolint Dockerfile

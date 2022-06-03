@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: capstone
-          image: project4udacity/capstone-app
+          image: 326983632510.dkr.ecr.us-east-1.amazonaws.com/capstone-app
           imagePullPolicy: "Always"
           ports:
             - containerPort: 80

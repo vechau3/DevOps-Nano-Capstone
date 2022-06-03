@@ -2,7 +2,7 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: capstone
+  name: capstone-app-project-cloud
   region: us-east-1
 
 managedNodeGroups:
