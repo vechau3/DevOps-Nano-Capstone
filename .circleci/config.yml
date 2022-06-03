@@ -82,7 +82,7 @@ jobs:
       - run:
           name: Connect to cluster
           command: |
-            aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $ENVIRONMENT_NAME-cluster
+            aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $ENVIRONMENT_NAME-app-project-cloud
       - run:
           name: Install kubectl
           command: |
