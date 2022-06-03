@@ -1,6 +1,6 @@
 version: 2.1
 jobs:
-  test-build:
+  testing-phase:
     docker:
       - image: python:3.7.3-stretch
 
@@ -29,7 +29,7 @@ jobs:
             - ./venv
           key: v1-dependencies-{{ checksum "requirements.txt" }}
 
-  upload-docker:
+  upload-application-phase:
     docker:
       - image: circleci/golang:1.15
     working_directory: ~/repo
@@ -45,7 +45,7 @@ jobs:
           command: |
             docker build --tag=$DOCKER_IMAGE_NAME .
             docker image ls
-
+      # login and upload docker image
       - run:
           name: Upload Docker to Dockerhub
           command: |
@@ -53,13 +53,21 @@ jobs:
             docker tag $DOCKER_IMAGE_NAME $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:$CIRCLE_WORKFLOW_ID
             docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:$CIRCLE_WORKFLOW_ID
 
-  install-dependencies:
+  deploy-application-phase:
     docker:
       - image: circleci/python:3.7
     steps:
+      - checkout
       - add_ssh_keys:
           fingerprints:
             - "1a:62:b9:c8:c7:d9:a5:e5:f3:0c:72:00:e3:37:a3:3d"
+      - run:
+          name: Create cluster
+          command: |
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            sudo mv /tmp/eksctl /usr/local/bin
+            eksctl create cluster -f cluster.yml
+      # Connect to cluster after create
       - run:
           name: Install awscli
           command: |
@@ -72,33 +80,17 @@ jobs:
             chmod +x ./aws-iam-authenticator
             sudo mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator
       - run:
+          name: Connect to cluster
+          command: |
+            aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $ENVIRONMENT_NAME-cluster
+      - run:
           name: Install kubectl
           command: |
             curl -o kubectl https://amazon-eks.s3-us-west-2.amazonaws.com/1.13.7/2019-06-11/bin/linux/amd64/kubectl
             chmod +x ./kubectl
             sudo mv ./kubectl /usr/local/bin/kubectl
-
-  deploy-application:
-    docker:
-      - image: circleci/python:3.7
-    steps:
-      - checkout
-      - add_ssh_keys:
-          fingerprints:
-            - "1a:62:b9:c8:c7:d9:a5:e5:f3:0c:72:00:e3:37:a3:3d"
-
       - run:
-          name: Create cluster
-          command: |
-            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-            sudo mv /tmp/eksctl /usr/local/bin
-            eksctl create cluster -f cluster.yml
-      - run:
-          name: Connect to cluster
-          command: |
-            aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $ENVIRONMENT_NAME-cluster
-      - run:
-          name: Deploy
+          name: Deploy application
           command: |
             kubectl apply -f deployment.yml
             kubectl get pod
@@ -107,19 +99,17 @@ jobs:
 workflows:
   capstone-project-workflows:
     jobs:
-      - test-build
-      - install-dependencies
-      - upload-docker:
+      - testing-application-phase
+      - upload-application-phase:
           requires:
             - test-build
           filters:
             branches:
               only: [ master ]
-      - deploy-application:
+      - deploy-application-phase:
           filters:
             branches:
               only: [ master ]
           requires:
-            - install-dependencies
-            - upload-docker
+            - upload-application-phase
 
