@@ -99,31 +99,26 @@ workflows:
     jobs:
       - linting-application-phase
       - upload-application-phase:
-          requires:
-            - linting-application-phase
+          requires: [ linting-application-phase ]
           filters:
             branches:
               only: [ master ]
       - aws-ecr/build-and-push-image:
-          name: build-ecr
           registry-id: AWS_ECR_REGISTRY_ID
           region: ${AWS_DEFAULT_REGION}
           repo: capstone_app
           tag: v1.0
-          requires:
-            [upload-docker]
+          requires: [ upload-application-phase ]
       - aws-eks/create-cluster:
           cluster-name: $ENVIRONMENT_NAME-app-project
           aws-region: $AWS_DEFAULT_REGION
           requires:
-            - build-ecr
+            - aws-ecr/build-and-push-image
       - deploy-application-phase:
           filters:
             branches:
               only: [ master ]
-          requires:
-            - upload-application-phase
+          requires: [ aws-eks/create-cluster ]
       - expose-application-phase:
-          requires:
-            - deploy-application-phase
+          requires: [ deploy-application-phase ]
 
