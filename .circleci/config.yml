@@ -112,7 +112,7 @@ workflows:
       - aws-eks/create-cluster:
           cluster-name: $ENVIRONMENT_NAME-app-project
           aws-region: $AWS_DEFAULT_REGION
-          requires: [ upload-application-phase ]
+          requires: [ aws-ecr/build-and-push-image ]
       - deploy-application-phase:
           filters:
             branches:
