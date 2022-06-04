@@ -56,6 +56,13 @@ jobs:
             docker login -u="$DOCKERHUB_USERNAME" -p="$DOCKERHUB_PASSWORD"
             docker tag $DOCKER_IMAGE_NAME $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:latest
             docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:latest
+      - run:
+          name: Push image to ecr
+          command: |
+            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $AWS_ECR_REGISTRY_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+            docker build -t capstone-app .
+            docker tag capstone-app:latest $AWS_ECR_REGISTRY_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/capstone-app:latest
+            docker push $AWS_ECR_REGISTRY_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/capstone-app:latest
 
   deploy-application-phase:
     docker:
@@ -103,16 +110,16 @@ workflows:
           filters:
             branches:
               only: [ master ]
-      - aws-ecr/build-and-push-image:
-          registry-id: AWS_ECR_REGISTRY_ID
-          region: ${AWS_DEFAULT_REGION}
-          repo: capstone_app
-          tag: v1
-          requires: [ upload-application-phase ]
+      # - aws-ecr/build-and-push-image:
+      #     registry-id: AWS_ECR_REGISTRY_ID
+      #     region: ${AWS_DEFAULT_REGION}
+      #     repo: capstone_app
+      #     tag: v1
+      #     requires: [ upload-application-phase ]
       - aws-eks/create-cluster:
           cluster-name: $ENVIRONMENT_NAME-app-project
           aws-region: $AWS_DEFAULT_REGION
-          requires: [ aws-ecr/build-and-push-image ]
+          requires: [ upload-application-phase ]
       - deploy-application-phase:
           filters:
             branches:
