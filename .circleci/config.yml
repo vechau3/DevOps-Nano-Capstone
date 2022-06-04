@@ -57,32 +57,6 @@ jobs:
             docker tag $DOCKER_IMAGE_NAME $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:latest
             docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:latest
 
-  build-image-ecr-phase:
-    docker:
-    - image: circle/python:3:7
-    steps:
-      - checkout
-      - add_ssh_keys:
-          fingerprints:
-            - "1a:62:b9:c8:c7:d9:a5:e5:f3:0c:72:00:e3:37:a3:3d"
-      - aws-ecr/build-and-push-image:
-          registry-id: AWS_ECR_REGISTRY_ID
-          region: ${AWS_DEFAULT_REGION}
-          repo: capstone_app
-          tag: v1.0
-
-  create-cluster-phase:
-    docker:
-    - image: circle/python:3:7
-    steps:
-      - checkout
-      - add_ssh_keys:
-          fingerprints:
-            - "1a:62:b9:c8:c7:d9:a5:e5:f3:0c:72:00:e3:37:a3:3d"
-      - aws-eks/create-cluster:
-          cluster-name: $ENVIRONMENT_NAME-app-project
-          aws-region: $AWS_DEFAULT_REGION
-
   deploy-application-phase:
     docker:
       - image: circleci/python:3.7
@@ -129,15 +103,21 @@ workflows:
           filters:
             branches:
               only: [ master ]
-      - build-image-ecr-phase:
+      - aws-ecr/build-and-push-image:
+          registry-id: AWS_ECR_REGISTRY_ID
+          region: ${AWS_DEFAULT_REGION}
+          repo: capstone_app
+          tag: v1.0
           requires: [ upload-application-phase ]
-      - create-cluster-phase:
-          requires: [build-image-ecr-phase]
+      - aws-eks/create-cluster:
+          cluster-name: $ENVIRONMENT_NAME-app-project
+          aws-region: $AWS_DEFAULT_REGION
+          requires: [ aws-ecr/build-and-push-image ]
       - deploy-application-phase:
           filters:
             branches:
               only: [ master ]
-          requires: [ create-cluster-phase ]
+          requires: [ aws-eks/create-cluster ]
       - expose-application-phase:
           requires: [ deploy-application-phase ]
 
