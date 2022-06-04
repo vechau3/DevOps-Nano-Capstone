@@ -107,7 +107,7 @@ workflows:
           registry-id: AWS_ECR_REGISTRY_ID
           region: ${AWS_DEFAULT_REGION}
           repo: capstone_app
-          tag: v1.0
+          tag: v1
           requires: [ upload-application-phase ]
       - aws-eks/create-cluster:
           cluster-name: $ENVIRONMENT_NAME-app-project
