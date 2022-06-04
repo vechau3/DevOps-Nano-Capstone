@@ -129,9 +129,9 @@ workflows:
           filters:
             branches:
               only: [ master ]
-      - build-image-ecr-phase
+      - build-image-ecr-phase:
           requires: [ upload-application-phase ]
-      - create-cluster-phase
+      - create-cluster-phase:
           requires: [build-image-ecr-phase]
       - deploy-application-phase:
           filters:
