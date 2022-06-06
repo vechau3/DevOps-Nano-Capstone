@@ -1,6 +1,8 @@
 # DevOps-Nano-Capstone
 [![CircleCI](https://circleci.com/gh/vechau3/DevOps-Nano-Capstone.svg?style=shield)](https://github.com/vechau3/DevOps-Nano-Capstone)
 
+Github repository: https://github.com/vechau3/DevOps-Nano-Capstone
+
 This project represents the successful completion of the last final Capstone project and the Cloud DevOps Engineer Nanodegree at Udacity.
 
 ## What did I learn?
